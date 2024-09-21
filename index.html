@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ඞ Minesweeper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .grid {
+            display: inline-grid;
+            grid-template-columns: repeat(8, 50px);
+            gap: 2px;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .mine {
+            background-color: red;
+            color: white;
+        }
+
+        .safe {
+            background-color: #eee;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>ඞ Minesweeper</h1>
+    <div class="grid"></div>
+    <button id="retryBtn">Retry</button>
+
+    <script>
+        const gridElement = document.querySelector('.grid');
+        const retryButton = document.getElementById('retryBtn');
+        const rows = 8;
+        const cols = 8;
+        const mineCount = 10;
+
+        let mines = [];
+        let gameOver = false;
+
+        // Initialize the game
+        function initGame() {
+            gridElement.innerHTML = '';
+            mines = generateMines(rows, cols, mineCount);
+            gameOver = false;
+
+            // Create cells
+            for (let i = 0; i < rows * cols; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.index = i;
+
+                cell.addEventListener('click', handleCellClick);
+                gridElement.appendChild(cell);
+            }
+        }
+
+        // Generate random mines
+        function generateMines(rows, cols, count) {
+            const mines = Array(rows * cols).fill(false);
+            let placedMines = 0;
+
+            while (placedMines < count) {
+                const randomIndex = Math.floor(Math.random() * rows * cols);
+                if (!mines[randomIndex]) {
+                    mines[randomIndex] = true;
+                    placedMines++;
+                }
+            }
+
+            return mines;
+        }
+
+        // Handle cell click
+        function handleCellClick(e) {
+            if (gameOver) return;
+
+            const index = e.target.dataset.index;
+            const row = Math.floor(index / cols);
+            const col = index % cols;
+
+            if (mines[index]) {
+                // It's a mine!
+                e.target.classList.add('mine');
+                e.target.textContent = 'ඞ';
+                gameOver = true;
+                alert('Game Over! You hit a ඞ mine.');
+                revealMines();
+            } else {
+                const mineCount = countAdjacentMines(row, col);
+                e.target.classList.add('safe');
+                e.target.textContent = mineCount > 0 ? mineCount : '';
+                e.target.removeEventListener('click', handleCellClick);
+            }
+        }
+
+        // Count adjacent mines around a specific cell
+        function countAdjacentMines(row, col) {
+            let count = 0;
+
+            for (let r = row - 1; r <= row + 1; r++) {
+                for (let c = col - 1; c <= col + 1; c++) {
+                    if (r >= 0 && r < rows && c >= 0 && c < cols && mines[r * cols + c]) {
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        // Reveal all mines when game is over
+        function revealMines() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                if (mines[index]) {
+                    cell.classList.add('mine');
+                    cell.textContent = 'ඞ';
+                }
+            });
+        }
+
+        // Retry game
+        retryButton.addEventListener('click', initGame);
+
+        // Start the game on page load
+        initGame();
+    </script>
+</body>
+</html>
